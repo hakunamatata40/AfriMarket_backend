@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/layout :: head('Transactions & Finance')}"/>
+</head>
+<body>
+<span id="flashSuccess" th:if="${success}" th:text="${success}" style="display:none"></span>
+
+<div th:replace="~{fragments/layout :: sidebar('transactions')}"></div>
+
+<div class="main-area">
+    <header th:replace="~{fragments/layout :: topbar('Transactions & Finance')}"></header>
+
+    <div class="page-content">
+
+        <div class="page-header">
+            <div>
+                <div class="page-title">Transactions & Escrow</div>
+                <div class="page-subtitle">Supervision des flux financiers MoMo</div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <div class="table-card" style="padding:14px 20px; display:flex; flex-direction:column; gap:2px; min-width:180px;">
+                    <div class="section-label" style="margin:0;">Total commissions perçues</div>
+                    <div class="td-mono text-gold" style="font-size:22px; font-weight:700;"
+                         th:text="${totalCommissions != null ? #numbers.formatInteger(totalCommissions.longValue(), 1, 'POINT') + ' FCFA' : '0 FCFA'}">0 FCFA</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ OPEN DISPUTES ══ -->
+        <div th:if="${disputes != null and !disputes.empty}">
+            <div class="section-label">
+                ⚠ Litiges ouverts —
+                <span class="pill pill-litige" th:text="${disputes.size()} + ' à traiter'">0</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:28px;">
+                <div th:each="d : ${disputes}" class="table-card"
+                     style="padding:20px 24px; display:grid; grid-template-columns:1fr auto; gap:20px; align-items:center;">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                            <span class="pill pill-litige">⚠ LITIGE OUVERT</span>
+                            <span class="td-mono text-muted" style="font-size:11px;"
+                                  th:text="'#' + d.id">—</span>
+                            <span class="text-muted" style="font-size:11px;"
+                                  th:text="${d.createdAt != null ? 'Ouvert le ' + #temporals.format(d.createdAt, 'dd/MM/yyyy HH:mm') : ''}">—</span>
+                        </div>
+                        <div style="font-size:15px; font-weight:600; color:var(--red); margin-bottom:6px;"
+                             th:text="${d.reason}">—</div>
+                        <div style="font-size:13px; color:var(--text); margin-bottom:8px;"
+                             th:text="${d.description}">—</div>
+                        <div style="display:flex; gap:16px; font-size:12px; color:var(--text-dim);">
+                            <span th:if="${d.openedBy != null}"
+                                  th:text="'Ouvert par : ' + d.openedBy.fullName">—</span>
+                            <span th:if="${d.order != null and d.order.totalAmount != null}"
+                                  th:text="'Montant : ' + #numbers.formatInteger(d.order.totalAmount.longValue(), 1, 'POINT') + ' FCFA'">—</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:8px; min-width:200px;">
+                        <button class="btn btn-green" th:onclick="'openResolveModal(' + d.id + ', false)'">
+                            ✓ Libérer vers producteur
+                        </button>
+                        <button class="btn btn-red" th:onclick="'openResolveModal(' + d.id + ', true)'">
+                            ↩ Rembourser l'acheteur
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${disputes == null or disputes.empty}"
+             class="table-card" style="margin-bottom:28px; padding:20px 24px; display:flex; align-items:center; gap:12px;">
+            <span style="color:var(--green); font-size:18px;">✓</span>
+            <span style="font-size:14px; color:var(--text-dim);">Aucun litige ouvert — Tous les litiges ont été traités.</span>
+        </div>
+
+        <!-- ══ TIMELINE SECTION ══ -->
+        <div class="section-label">Cycle de vie Escrow — Exemple</div>
+        <div class="table-card" style="margin-bottom:28px; padding:24px;">
+            <div class="chart-card-title" style="margin-bottom:20px;">Comment fonctionne l'escrow AfriMarket</div>
+            <div class="timeline-steps">
+                <div class="timeline-step done">
+                    <div class="step-dot">✓</div>
+                    <div class="step-label">CAPTURÉ</div>
+                </div>
+                <div class="timeline-step done">
+                    <div class="step-dot">✓</div>
+                    <div class="step-label">EN ESCROW</div>
+                </div>
+                <div class="timeline-step active">
+                    <div class="step-dot">◉</div>
+                    <div class="step-label">LIVRÉ</div>
+                </div>
+                <div class="timeline-step">
+                    <div class="step-dot">○</div>
+                    <div class="step-label">LIBÉRÉ</div>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:16px;">
+                <div style="font-size:11px; color:var(--text-dim); text-align:center;">Le MoMo de l'acheteur est débité et retenu</div>
+                <div style="font-size:11px; color:var(--text-dim); text-align:center;">Fonds bloqués sur le compte escrow AfriMarket</div>
+                <div style="font-size:11px; color:var(--text-dim); text-align:center;">Producteur confirme l'envoi, relais confirme la réception</div>
+                <div style="font-size:11px; color:var(--text-dim); text-align:center;">Paiement libéré vers le MoMo du producteur (-4%)</div>
+            </div>
+        </div>
+
+        <!-- ══ TRANSACTIONS TABLE ══ -->
+        <div class="section-label">Toutes les transactions</div>
+        <div class="table-card">
+            <div class="table-card-header">
+                <div class="table-card-title">◎ Flux financiers</div>
+                <a href="/admin/transactions" class="btn btn-outline btn-xs">Exporter CSV</a>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <colgroup>
+                        <col style="width:60px">
+                        <col style="width:100px">
+                        <col style="width:130px">
+                        <col style="width:120px">
+                        <col style="width:110px">
+                        <col style="width:100px">
+                        <col style="width:120px">
+                        <col style="width:90px">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Type</th>
+                            <th>Commande #</th>
+                            <th>Montant</th>
+                            <th>Commission</th>
+                            <th>Net</th>
+                            <th>Réf. MoMo</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="tx : ${transactions}" th:if="${transactions != null}">
+                            <td class="td-mono text-muted" th:text="${tx.id}">1</td>
+                            <td>
+                                <span th:switch="${tx.type?.name()}">
+                                    <span th:case="'CAPTURE'"    class="pill pill-escrow">CAPTURE</span>
+                                    <span th:case="'RELEASE'"    class="pill pill-completed">LIBÉRATION</span>
+                                    <span th:case="'REFUND'"     class="pill pill-cancelled">REMB.</span>
+                                    <span th:case="'COMMISSION'" class="pill pill-pending">COMMISSION</span>
+                                    <span th:case="*"            class="pill pill-draft" th:text="${tx.type}">—</span>
+                                </span>
+                            </td>
+                            <td class="td-mono"
+                                th:text="${tx.order != null ? '#' + tx.order.id : '—'}">—</td>
+                            <td class="td-mono td-right text-gold"
+                                th:text="${tx.amount != null ? #numbers.formatInteger(tx.amount.longValue(), 1, 'POINT') + ' F' : '—'}">—</td>
+                            <td class="td-mono td-right text-muted"
+                                th:text="${tx.commission != null ? #numbers.formatInteger(tx.commission.longValue(), 1, 'POINT') + ' F' : '—'}">—</td>
+                            <td class="td-mono td-right text-green"
+                                th:text="${tx.netAmount != null ? #numbers.formatInteger(tx.netAmount.longValue(), 1, 'POINT') + ' F' : '—'}">—</td>
+                            <td class="td-mono text-muted" style="font-size:11px;"
+                                th:text="${tx.momoRef != null ? #strings.abbreviate(tx.momoRef, 16) : '—'}">—</td>
+                            <td class="text-muted" style="font-size:11px;"
+                                th:text="${tx.createdAt != null ? #temporals.format(tx.createdAt, 'dd/MM/yy HH:mm') : '—'}">—</td>
+                        </tr>
+                        <tr th:if="${transactions == null or transactions.empty}">
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <div class="empty-icon">◎</div>
+                                    <div class="empty-text">Aucune transaction enregistrée</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div style="padding:16px 24px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border);"
+                 th:if="${transactions != null and transactions.totalPages > 1}">
+                <span class="text-muted" style="font-size:12px;"
+                      th:text="'Page ' + (transactions.number + 1) + ' sur ' + transactions.totalPages">—</span>
+                <div class="flex gap-2">
+                    <a class="btn btn-outline btn-sm" th:if="${!transactions.first}"
+                       th:href="@{/admin/transactions(page=${transactions.number - 1})}">← Préc.</a>
+                    <a class="btn btn-outline btn-sm" th:if="${!transactions.last}"
+                       th:href="@{/admin/transactions(page=${transactions.number + 1})}">Suiv. →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resolve Dispute Modal -->
+<div class="modal-overlay" id="resolveModal">
+    <div class="modal-box">
+        <div class="modal-title" id="resolveModalTitle">Résoudre le litige</div>
+        <form id="resolveForm" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <input type="hidden" name="refund" id="refundField" value="false">
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">
+                    Décision et commentaire
+                </label>
+                <textarea name="resolution" class="modal-textarea"
+                          placeholder="Décrivez la décision prise et les raisons..." required></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeModal('resolveModal')">Annuler</button>
+                <button type="submit" class="btn btn-gold" id="resolveSubmitBtn">Confirmer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"/>
+<script>
+function openResolveModal(disputeId, isRefund) {
+    document.getElementById('resolveForm').action = '/admin/transactions/disputes/' + disputeId + '/resolve';
+    document.getElementById('refundField').value = isRefund ? 'true' : 'false';
+    document.getElementById('resolveModalTitle').textContent = isRefund
+        ? '↩ Confirmer le remboursement acheteur'
+        : '✓ Libérer les fonds vers le producteur';
+    document.getElementById('resolveSubmitBtn').textContent = isRefund ? 'Rembourser' : 'Libérer';
+    openModal('resolveModal');
+}
+</script>
+</body>
+</html>

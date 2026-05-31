@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/layout :: head('Paramètres Système')}"/>
+</head>
+<body>
+<span id="flashSuccess" th:if="${success}" th:text="${success}" style="display:none"></span>
+
+<div th:replace="~{fragments/layout :: sidebar('settings')}"></div>
+
+<div class="main-area">
+    <header th:replace="~{fragments/layout :: topbar('Paramètres Système')}"></header>
+
+    <div class="page-content">
+
+        <div class="page-header">
+            <div>
+                <div class="page-title">Paramètres système</div>
+                <div class="page-subtitle">Configuration globale de la plateforme AfriMarket</div>
+            </div>
+        </div>
+
+        <form action="/admin/settings" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+                <!-- Finance settings -->
+                <div class="table-card">
+                    <div class="table-card-header">
+                        <div class="table-card-title">◎ Finance & Escrow</div>
+                    </div>
+                    <div style="padding:8px 24px 20px;">
+
+                        <div class="setting-row" th:each="s : ${settings}"
+                             th:if="${s.key == 'commission_rate'}">
+                            <div class="setting-info">
+                                <div class="setting-key">commission_rate</div>
+                                <div class="setting-desc" th:text="${s.description}">—</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="number" step="0.1" min="0" max="20"
+                                       th:name="${s.key}"
+                                       th:value="${s.value}"
+                                       class="setting-input">
+                                <span class="text-muted" style="font-size:13px;">%</span>
+                            </div>
+                        </div>
+
+                        <div class="setting-row" th:each="s : ${settings}"
+                             th:if="${s.key == 'min_withdrawal'}">
+                            <div class="setting-info">
+                                <div class="setting-key">min_withdrawal</div>
+                                <div class="setting-desc" th:text="${s.description}">—</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="number" min="0"
+                                       th:name="${s.key}"
+                                       th:value="${s.value}"
+                                       class="setting-input">
+                                <span class="text-muted" style="font-size:13px;">FCFA</span>
+                            </div>
+                        </div>
+
+                        <div class="setting-row" th:each="s : ${settings}"
+                             th:if="${s.key == 'escrow_max_days'}">
+                            <div class="setting-info">
+                                <div class="setting-key">escrow_max_days</div>
+                                <div class="setting-desc" th:text="${s.description}">—</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="number" min="1" max="30"
+                                       th:name="${s.key}"
+                                       th:value="${s.value}"
+                                       class="setting-input">
+                                <span class="text-muted" style="font-size:13px;">jours</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Offers settings -->
+                <div class="table-card">
+                    <div class="table-card-header">
+                        <div class="table-card-title">◉ Gestion des offres</div>
+                    </div>
+                    <div style="padding:8px 24px 20px;">
+
+                        <div class="setting-row" th:each="s : ${settings}"
+                             th:if="${s.key == 'max_offer_duration'}">
+                            <div class="setting-info">
+                                <div class="setting-key">max_offer_duration</div>
+                                <div class="setting-desc" th:text="${s.description}">—</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="number" min="1" max="90"
+                                       th:name="${s.key}"
+                                       th:value="${s.value}"
+                                       class="setting-input">
+                                <span class="text-muted" style="font-size:13px;">jours</span>
+                            </div>
+                        </div>
+
+                        <div class="setting-row" th:each="s : ${settings}"
+                             th:if="${s.key == 'admin_validation_hours'}">
+                            <div class="setting-info">
+                                <div class="setting-key">admin_validation_hours</div>
+                                <div class="setting-desc" th:text="${s.description}">—</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="number" min="1" max="168"
+                                       th:name="${s.key}"
+                                       th:value="${s.value}"
+                                       class="setting-input">
+                                <span class="text-muted" style="font-size:13px;">heures</span>
+                            </div>
+                        </div>
+
+                        <div class="setting-row" th:each="s : ${settings}"
+                             th:if="${s.key == 'max_active_offers'}">
+                            <div class="setting-info">
+                                <div class="setting-key">max_active_offers</div>
+                                <div class="setting-desc" th:text="${s.description}">—</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="number" min="1" max="20"
+                                       th:name="${s.key}"
+                                       th:value="${s.value}"
+                                       class="setting-input">
+                                <span class="text-muted" style="font-size:13px;">offres max</span>
+                            </div>
+                        </div>
+
+                        <div class="setting-row" th:each="s : ${settings}"
+                             th:if="${s.key == 'auto_confirm_days'}">
+                            <div class="setting-info">
+                                <div class="setting-key">auto_confirm_days</div>
+                                <div class="setting-desc" th:text="${s.description}">—</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="number" min="1" max="7"
+                                       th:name="${s.key}"
+                                       th:value="${s.value}"
+                                       class="setting-input">
+                                <span class="text-muted" style="font-size:13px;">jours</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SMS / Integrations -->
+                <div class="table-card">
+                    <div class="table-card-header">
+                        <div class="table-card-title">◈ Intégrations externes</div>
+                    </div>
+                    <div style="padding:8px 24px 20px;">
+
+                        <div class="setting-row" th:each="s : ${settings}"
+                             th:if="${s.key == 'sms_provider'}">
+                            <div class="setting-info">
+                                <div class="setting-key">sms_provider</div>
+                                <div class="setting-desc" th:text="${s.description}">—</div>
+                            </div>
+                            <select th:name="${s.key}" class="filter-select">
+                                <option value="africas_talking"
+                                        th:selected="${s.value == 'africas_talking'}">Africa's Talking</option>
+                                <option value="twilio"
+                                        th:selected="${s.value == 'twilio'}">Twilio</option>
+                                <option value="orange"
+                                        th:selected="${s.value == 'orange'}">Orange SMS API</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info card -->
+                <div class="table-card">
+                    <div class="table-card-header">
+                        <div class="table-card-title">⬡ À propos du système</div>
+                    </div>
+                    <div style="padding:20px 24px;">
+                        <div class="setting-row" style="padding:12px 0;">
+                            <div class="setting-info">
+                                <div class="setting-key">Version</div>
+                                <div class="setting-desc">AfriMarket Backend</div>
+                            </div>
+                            <div class="td-mono text-gold">v1.0.0</div>
+                        </div>
+                        <div class="setting-row" style="padding:12px 0;">
+                            <div class="setting-info">
+                                <div class="setting-key">Base de données</div>
+                                <div class="setting-desc">Stockage local embarqué</div>
+                            </div>
+                            <div class="td-mono text-green">SQLite ●</div>
+                        </div>
+                        <div class="setting-row" style="padding:12px 0;">
+                            <div class="setting-info">
+                                <div class="setting-key">Plateforme</div>
+                                <div class="setting-desc">Environnement d'exécution</div>
+                            </div>
+                            <div class="td-mono text-muted">Spring Boot 4</div>
+                        </div>
+                        <div class="setting-row" style="padding:12px 0;">
+                            <div class="setting-info">
+                                <div class="setting-key">Localisation</div>
+                                <div class="setting-desc">Marché cible</div>
+                            </div>
+                            <div class="td-mono text-muted">Yaoundé, CMR</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:12px;">
+                <a href="/admin/settings" class="btn btn-outline">Réinitialiser</a>
+                <button type="submit" class="btn btn-gold" style="min-width:180px;">
+                    ✓ Sauvegarder les paramètres
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"/>
+</body>
+</html>

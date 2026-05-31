@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="~{fragments/layout :: head('Tableau de bord')}"/>
+</head>
+<body>
+
+<!-- Flash -->
+<span id="flashSuccess" th:if="${success}" th:text="${success}" style="display:none"></span>
+
+<div class="sidebar" th:replace="~{fragments/layout :: sidebar('dashboard')}"></div>
+
+<div class="main-area">
+    <header th:replace="~{fragments/layout :: topbar('Tableau de bord')}"></header>
+
+    <div class="page-content">
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <div class="page-title">Vue d'ensemble</div>
+                <div class="page-subtitle">AfriMarket — Plateforme P2P Agricole • Yaoundé, Cameroun</div>
+            </div>
+            <div class="flex gap-2 items-center">
+                <span class="pill pill-active"><span class="pill-dot"></span>Système opérationnel</span>
+                <a href="/admin/offers" class="btn btn-gold btn-sm"
+                   th:if="${pendingOffers != null and pendingOffers > 0}">
+                    ◉ <span th:text="${pendingOffers}">0</span> offres à valider
+                </a>
+            </div>
+        </div>
+
+        <!-- ══ ROW 1 — KPI Cards ══ -->
+        <div class="section-label">Indicateurs temps réel</div>
+        <div class="kpi-grid">
+
+            <div class="kpi-card">
+                <div class="kpi-label">Offres actives</div>
+                <div class="kpi-value"
+                     data-value="${activeOffers}"
+                     th:attr="data-value=${activeOffers}">0</div>
+                <span class="kpi-delta up">↑ En ligne</span>
+                <div class="kpi-icon">◉</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">Commandes en cours</div>
+                <div class="kpi-value"
+                     th:attr="data-value=${ongoingOrders}">0</div>
+                <span class="kpi-delta up"
+                      th:if="${ongoingOrders != null and ongoingOrders > 0}">↑ Actives</span>
+                <span class="kpi-delta warn"
+                      th:if="${ongoingOrders == null or ongoingOrders == 0}">— Aucune</span>
+                <div class="kpi-icon">◎</div>
+            </div>
+
+            <div class="kpi-card escrow">
+                <div class="kpi-label">Valeur en escrow (FCFA)</div>
+                <div class="kpi-value"
+                     th:attr="data-value=${escrowValue != null ? escrowValue.longValue() : 0}">0</div>
+                <span class="kpi-delta warn">⬡ Séquestre</span>
+                <div class="kpi-icon">◎</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">Revenus du jour (FCFA)</div>
+                <div class="kpi-value"
+                     th:attr="data-value=${todayRevenue != null ? todayRevenue.longValue() : 0}">0</div>
+                <span class="kpi-delta up"
+                      th:if="${todayRevenue != null and todayRevenue.longValue() > 0}">↑ Aujourd'hui</span>
+                <span class="kpi-delta warn"
+                      th:if="${todayRevenue == null or todayRevenue.longValue() == 0}">— En attente</span>
+                <div class="kpi-icon">◈</div>
+            </div>
+        </div>
+
+        <!-- ══ ROW 1b — Alertes rapides ══ -->
+        <div class="kpi-grid" style="grid-template-columns: repeat(3,1fr); margin-bottom:28px;">
+            <div class="kpi-card" style="padding:18px 24px;">
+                <div class="kpi-label">Litiges ouverts</div>
+                <div class="kpi-value" style="font-size:32px;"
+                     th:text="${openDisputes}">0</div>
+                <span class="kpi-delta" th:class="${openDisputes > 0} ? 'kpi-delta down' : 'kpi-delta up'">
+                    <span th:text="${openDisputes > 0} ? '⚠ À traiter' : '✓ Aucun'">✓ Aucun</span>
+                </span>
+            </div>
+            <div class="kpi-card" style="padding:18px 24px;">
+                <div class="kpi-label">Comptes en attente</div>
+                <div class="kpi-value" style="font-size:32px;"
+                     th:text="${pendingUsers}">0</div>
+                <span class="kpi-delta"
+                      th:class="${pendingUsers > 0} ? 'kpi-delta warn' : 'kpi-delta up'">
+                    <span th:text="${pendingUsers > 0} ? '— À valider' : '✓ À jour'">✓ À jour</span>
+                </span>
+            </div>
+            <div class="kpi-card" style="padding:18px 24px;">
+                <div class="kpi-label">Offres à modérer</div>
+                <div class="kpi-value" style="font-size:32px;"
+                     th:text="${pendingOffers}">0</div>
+                <span class="kpi-delta"
+                      th:class="${pendingOffers > 0} ? 'kpi-delta warn' : 'kpi-delta up'">
+                    <span th:text="${pendingOffers > 0} ? '— En attente' : '✓ File vide'">✓ File vide</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- ══ ROW 2 — Charts ══ -->
+        <div class="section-label">Analytics</div>
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="chart-card-title">
+                    <span>Transactions (30 derniers jours)</span>
+                    <span class="pill pill-active" style="font-size:10px;">● Live</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="txChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-title">Répartition par catégorie</div>
+                <div class="chart-wrapper">
+                    <canvas id="catChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ ROW 3 — Table + Alerts ══ -->
+        <div class="split-row">
+
+            <!-- Recent orders table -->
+            <div class="table-card">
+                <div class="table-card-header">
+                    <div class="table-card-title">◎ Dernières transactions</div>
+                    <a href="/admin/transactions" class="btn btn-outline btn-xs">Tout voir →</a>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <colgroup>
+                            <col style="width:60px">
+                            <col style="width:140px">
+                            <col style="width:130px">
+                            <col style="width:110px">
+                            <col style="width:90px">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Offre</th>
+                                <th>Acheteur</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="order : ${recentOrders}" th:if="${recentOrders != null}">
+                                <td class="td-mono text-muted" th:text="${order.id}">1</td>
+                                <td th:text="${order.offer != null ? #strings.abbreviate(order.offer.title, 25) : '—'}">—</td>
+                                <td th:text="${order.buyer != null ? order.buyer.fullName : '—'}">—</td>
+                                <td class="td-mono td-right"
+                                    th:text="${order.totalAmount != null ? #numbers.formatInteger(order.totalAmount.longValue(), 1, 'POINT') + ' FCFA' : '—'}">—</td>
+                                <td>
+                                    <span th:switch="${order.status?.name()}">
+                                        <span th:case="'PAID'"      class="pill pill-escrow">EN ESCROW</span>
+                                        <span th:case="'COMPLETED'" class="pill pill-completed">LIBÉRÉE</span>
+                                        <span th:case="'DISPUTED'"  class="pill pill-litige">LITIGE</span>
+                                        <span th:case="'REFUNDED'"  class="pill pill-cancelled">REMBOURS.</span>
+                                        <span th:case="'AT_RELAY'"  class="pill pill-delivering">AU RELAIS</span>
+                                        <span th:case="*"           class="pill pill-pending"
+                                              th:text="${order.status}">—</span>
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr th:if="${recentOrders == null or recentOrders.empty}">
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">◎</div>
+                                        <div class="empty-text">Aucune transaction pour le moment</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Alert feed -->
+            <div class="table-card">
+                <div class="table-card-header">
+                    <div class="table-card-title">
+                        ⚠ Alertes système
+                        <span class="pill pill-litige" style="font-size:10px;"
+                              th:if="${openDisputes > 0}"
+                              th:text="${openDisputes} + ' litige(s)'">0 litige</span>
+                    </div>
+                </div>
+                <div style="padding:16px;">
+                    <div class="alert-feed">
+
+                        <div class="alert-item" th:if="${openDisputes > 0}">
+                            <span class="alert-icon" style="color:#F87171">⚠</span>
+                            <div>
+                                <div class="alert-msg"
+                                     th:text="${openDisputes} + ' litige(s) non traité(s) en attente d\'arbitrage.'">—</div>
+                                <div class="alert-time">Priorité haute • Maintenant</div>
+                            </div>
+                        </div>
+
+                        <div class="alert-item" th:if="${pendingUsers > 0}">
+                            <span class="alert-icon" style="color:#FBBF24">◈</span>
+                            <div>
+                                <div class="alert-msg"
+                                     th:text="${pendingUsers} + ' compte(s) producteur en attente de validation KYC.'">—</div>
+                                <div class="alert-time">À valider dans 24h</div>
+                            </div>
+                        </div>
+
+                        <div class="alert-item" th:if="${pendingOffers > 0}">
+                            <span class="alert-icon" style="color:#C8973A">◉</span>
+                            <div>
+                                <div class="alert-msg"
+                                     th:text="${pendingOffers} + ' offre(s) en file de modération.'">—</div>
+                                <div class="alert-time">Validation requise</div>
+                            </div>
+                        </div>
+
+                        <div class="alert-item">
+                            <span class="alert-icon" style="color:#4ADE80">⬡</span>
+                            <div>
+                                <div class="alert-msg">Système opérationnel. Base de données SQLite connectée.</div>
+                                <div class="alert-time">Statut • Maintenant</div>
+                            </div>
+                        </div>
+
+                        <div class="alert-item">
+                            <span class="alert-icon" style="color:#4ADE80">◎</span>
+                            <div>
+                                <div class="alert-msg">Reversements automatiques programmés à 18h00.</div>
+                                <div class="alert-time">Finance • Aujourd'hui</div>
+                            </div>
+                        </div>
+
+                        <div class="alert-item"
+                             th:if="${openDisputes == 0 and pendingUsers == 0 and pendingOffers == 0}">
+                            <span class="alert-icon" style="color:#4ADE80">✓</span>
+                            <div>
+                                <div class="alert-msg">Aucune alerte critique. Tout est en ordre.</div>
+                                <div class="alert-time">Dernière vérification • Maintenant</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Derniers inscrits -->
+                <div class="table-card-header" style="margin-top:4px;">
+                    <div class="table-card-title">◈ Derniers inscrits</div>
+                    <a href="/admin/users" class="btn btn-outline btn-xs">Voir tout →</a>
+                </div>
+                <div style="padding:8px 0;">
+                    <div th:each="user : ${recentUsers}" th:if="${recentUsers != null}"
+                         style="display:flex; align-items:center; gap:12px; padding:10px 20px; border-bottom:1px solid rgba(74,222,128,0.05);">
+                        <div class="admin-avatar" style="width:32px; height:32px; font-size:11px;"
+                             th:text="${#strings.substring(user.fullName, 0, 2).toUpperCase()}">AD</div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:13px; font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                                 th:text="${user.fullName}">—</div>
+                            <div style="font-size:11px; color:var(--text-dim);"
+                                 th:text="${user.role?.name()} + ' • ' + (user.zone != null ? user.zone.name : 'Sans zone')">—</div>
+                        </div>
+                        <span th:switch="${user.status?.name()}">
+                            <span th:case="'ACTIVE'"   class="pill pill-active" style="font-size:10px;">ACTIF</span>
+                            <span th:case="'PENDING'"  class="pill pill-pending" style="font-size:10px;">EN ATTENTE</span>
+                            <span th:case="*"          class="pill pill-suspended" style="font-size:10px;"
+                                  th:text="${user.status}">—</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page-content -->
+</div><!-- /main-area -->
+
+<div class="toast-container" id="toastContainer"></div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"/>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Generate last 30 days labels
+    const labels = [];
+    const values = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      labels.push(d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }));
+      // Simulated data — replace with real data from backend
+      values.push(Math.floor(Math.random() * 450000 + 50000));
+    }
+
+    const catData = {
+      labels: ['Légumes', 'Fruits', 'Tubercules', 'Céréales', 'Élevage', 'Autre'],
+      values: [35, 25, 18, 12, 7, 3]
+    };
+
+    initDashboardCharts({ labels, values }, catData);
+  });
+</script>
+
+</body>
+</html>

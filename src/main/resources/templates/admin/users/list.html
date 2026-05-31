@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/layout :: head('Utilisateurs')}"/>
+</head>
+<body>
+<span id="flashSuccess" th:if="${success}" th:text="${success}" style="display:none"></span>
+
+<div th:replace="~{fragments/layout :: sidebar('users')}"></div>
+
+<div class="main-area">
+    <header th:replace="~{fragments/layout :: topbar('Gestion des Utilisateurs')}"></header>
+
+    <div class="page-content">
+
+        <div class="page-header">
+            <div>
+                <div class="page-title">Utilisateurs</div>
+                <div class="page-subtitle" th:text="${users != null ? users.totalElements : 0} + ' comptes enregistrés'">0 comptes</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="table-card" style="margin-bottom:20px;">
+            <form method="get" action="/admin/users">
+                <div class="filters-bar">
+                    <select name="role" class="filter-select">
+                        <option value="">Tous les rôles</option>
+                        <option th:each="r : ${roles}"
+                                th:value="${r.name()}"
+                                th:text="${r.name()}"
+                                th:selected="${r.name() == selectedRole}">ROLE</option>
+                    </select>
+                    <select name="status" class="filter-select">
+                        <option value="">Tous les statuts</option>
+                        <option th:each="s : ${statuses}"
+                                th:value="${s.name()}"
+                                th:text="${s.name()}"
+                                th:selected="${s.name() == selectedStatus}">STATUS</option>
+                    </select>
+                    <input type="text" name="search" class="filter-input"
+                           placeholder="Rechercher nom / téléphone..."
+                           th:value="${search}" style="flex:1; min-width:200px;">
+                    <button type="submit" class="btn btn-gold btn-sm">Filtrer</button>
+                    <a href="/admin/users" class="btn btn-outline btn-sm">Réinitialiser</a>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table>
+                    <colgroup>
+                        <col style="width:60px">
+                        <col style="width:160px">
+                        <col style="width:140px">
+                        <col style="width:90px">
+                        <col style="width:100px">
+                        <col style="width:140px">
+                        <col style="width:100px">
+                        <col style="width:120px">
+                        <col style="width:100px">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom complet</th>
+                            <th>Téléphone</th>
+                            <th>Rôle</th>
+                            <th>Statut</th>
+                            <th>Zone</th>
+                            <th>Note</th>
+                            <th>Inscription</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="user : ${users}" th:if="${users != null}">
+                            <td class="td-mono text-muted" th:text="${user.id}">1</td>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div class="admin-avatar" style="width:30px; height:30px; font-size:10px; flex-shrink:0;"
+                                         th:text="${#strings.substring(user.fullName, 0, 2).toUpperCase()}">XX</div>
+                                    <span th:text="${user.fullName}">—</span>
+                                </div>
+                            </td>
+                            <td class="td-mono" th:text="${user.phone ?: '—'}">—</td>
+                            <td>
+                                <span th:switch="${user.role?.name()}">
+                                    <span th:case="'ADMIN'"    class="pill pill-escrow">ADMIN</span>
+                                    <span th:case="'PRODUCER'" class="pill pill-delivering">PRODUCTEUR</span>
+                                    <span th:case="'CONSUMER'" class="pill pill-active">CONSOMMATEUR</span>
+                                    <span th:case="'RELAY'"    class="pill pill-pending">RELAIS</span>
+                                    <span th:case="'FINANCE'"  class="pill pill-escrow">FINANCE</span>
+                                    <span th:case="*"          class="pill pill-draft" th:text="${user.role}">—</span>
+                                </span>
+                            </td>
+                            <td>
+                                <span th:switch="${user.status?.name()}">
+                                    <span th:case="'ACTIVE'"    class="pill pill-active"><span class="pill-dot"></span>ACTIF</span>
+                                    <span th:case="'PENDING'"   class="pill pill-pending">EN ATTENTE</span>
+                                    <span th:case="'SUSPENDED'" class="pill pill-suspended">SUSPENDU</span>
+                                    <span th:case="'REVIEW'"    class="pill pill-review">REVIEW</span>
+                                    <span th:case="'DELETED'"   class="pill pill-deleted">SUPPRIMÉ</span>
+                                    <span th:case="*"           class="pill pill-draft" th:text="${user.status}">—</span>
+                                </span>
+                            </td>
+                            <td th:text="${user.zone != null ? user.zone.name : '—'}">—</td>
+                            <td class="td-mono">
+                                <span style="color:var(--gold);" th:text="${user.ratingAvg != null ? #numbers.formatDecimal(user.ratingAvg, 1, 'COMMA', 1, 'POINT') : '—'}">—</span>
+                                <span style="color:var(--text-dim); font-size:11px;" th:text="'(' + (user.ratingCount ?: 0) + ')'"></span>
+                            </td>
+                            <td class="text-muted" style="font-size:11px;"
+                                th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'dd/MM/yy') : '—'}">—</td>
+                            <td>
+                                <a th:href="@{/admin/users/{id}(id=${user.id})}"
+                                   class="btn btn-outline btn-xs">Détail →</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${users == null or users.empty}">
+                            <td colspan="9">
+                                <div class="empty-state">
+                                    <div class="empty-icon">◈</div>
+                                    <div class="empty-text">Aucun utilisateur trouvé</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div style="padding:16px 24px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border);"
+                 th:if="${users != null and users.totalPages > 1}">
+                <span class="text-muted" style="font-size:12px;"
+                      th:text="'Page ' + (users.number + 1) + ' sur ' + users.totalPages">—</span>
+                <div class="flex gap-2">
+                    <a class="btn btn-outline btn-sm"
+                       th:if="${!users.first}"
+                       th:href="@{/admin/users(page=${users.number - 1}, role=${selectedRole}, status=${selectedStatus}, search=${search})}">← Préc.</a>
+                    <a class="btn btn-outline btn-sm"
+                       th:if="${!users.last}"
+                       th:href="@{/admin/users(page=${users.number + 1}, role=${selectedRole}, status=${selectedStatus}, search=${search})}">Suiv. →</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"/>
+</body>
+</html>

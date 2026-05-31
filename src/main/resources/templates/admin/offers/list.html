@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/layout :: head('Offres & Modération')}"/>
+</head>
+<body>
+<span id="flashSuccess" th:if="${success}" th:text="${success}" style="display:none"></span>
+
+<div th:replace="~{fragments/layout :: sidebar('offers')}"></div>
+
+<div class="main-area">
+    <header th:replace="~{fragments/layout :: topbar('Offres & Modération')}"></header>
+
+    <div class="page-content">
+
+        <div class="page-header">
+            <div>
+                <div class="page-title">Modération des offres</div>
+                <div class="page-subtitle">File d'attente de validation et historique complet</div>
+            </div>
+        </div>
+
+        <!-- ══ PENDING REVIEW QUEUE ══ -->
+        <div th:if="${pendingOffers != null and !pendingOffers.empty}">
+            <div class="section-label">
+                ⚠ File de modération —
+                <span th:text="${pendingOffers.size()} + ' offre(s) en attente'">0</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:28px;">
+                <div th:each="offer : ${pendingOffers}"
+                     class="table-card"
+                     style="display:grid; grid-template-columns:1fr auto; gap:20px; align-items:center; padding:20px 24px;">
+
+                    <div>
+                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+                            <span class="pill pill-pending">EN ATTENTE</span>
+                            <span class="text-muted" style="font-size:11px; font-family:'Syne Mono',monospace;"
+                                  th:text="'ID ' + offer.id">—</span>
+                            <span class="text-muted" style="font-size:11px;"
+                                  th:text="${offer.createdAt != null ? 'Soumis ' + #temporals.format(offer.createdAt, 'dd/MM/yyyy HH:mm') : ''}">—</span>
+                        </div>
+
+                        <div style="font-size:16px; font-weight:600; color:var(--text); margin-bottom:6px;"
+                             th:text="${offer.title}">—</div>
+
+                        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
+                            <span class="td-mono text-gold"
+                                  th:text="${offer.pricePerUnit != null ? #numbers.formatInteger(offer.pricePerUnit.longValue(), 1, 'POINT') + ' FCFA/' + offer.unit?.label : '—'}">—</span>
+                            <span class="text-muted">·</span>
+                            <span th:text="'Dispo: ' + (offer.availableQty != null ? offer.availableQty.intValue() : 0) + ' ' + offer.unit?.label">—</span>
+                            <span class="text-muted">·</span>
+                            <span th:text="'Seuil: ' + (offer.minThreshold != null ? offer.minThreshold.intValue() : 0) + ' ' + offer.unit?.label">—</span>
+                            <span class="text-muted">·</span>
+                            <span class="pill pill-delivering" style="font-size:10px;"
+                                  th:text="${offer.category?.label}">—</span>
+                        </div>
+
+                        <div style="margin-top:8px; font-size:12px; color:var(--text-dim);"
+                             th:if="${offer.producer != null}">
+                            Producteur : <strong th:text="${offer.producer.fullName}">—</strong>
+                            <span th:if="${offer.producer.zone != null}"
+                                  th:text="' • ' + offer.producer.zone.name">—</span>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:8px; min-width:180px;">
+                        <a th:href="@{/admin/offers/{id}(id=${offer.id})}"
+                           class="btn btn-outline btn-sm">Examiner →</a>
+
+                        <form th:action="@{/admin/offers/{id}/approve(id=${offer.id})}" method="post"
+                              style="display:inline;">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button type="submit" class="btn btn-green btn-sm" style="width:100%;">
+                                ✓ Approuver
+                            </button>
+                        </form>
+
+                        <button class="btn btn-red btn-sm"
+                                onclick="openRejectModal([[${offer.id}]])">
+                            ✕ Rejeter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${pendingOffers == null or pendingOffers.empty}"
+             class="table-card" style="margin-bottom:28px;">
+            <div class="empty-state">
+                <div class="empty-icon">◉</div>
+                <div class="empty-text">File de modération vide — Aucune offre en attente</div>
+            </div>
+        </div>
+
+        <!-- ══ ALL OFFERS TABLE ══ -->
+        <div class="section-label">Toutes les offres</div>
+        <div class="table-card">
+            <div class="table-card-header">
+                <div class="table-card-title">◉ Historique complet</div>
+                <span class="text-muted" style="font-size:12px;"
+                      th:text="${offers != null ? offers.totalElements : 0} + ' offres au total'">—</span>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <colgroup>
+                        <col style="width:55px">
+                        <col style="width:200px">
+                        <col style="width:90px">
+                        <col style="width:130px">
+                        <col style="width:100px">
+                        <col style="width:90px">
+                        <col style="width:100px">
+                        <col style="width:120px">
+                        <col style="width:100px">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Titre</th>
+                            <th>Catégorie</th>
+                            <th>Producteur</th>
+                            <th>Prix / Unité</th>
+                            <th>Progression</th>
+                            <th>Statut</th>
+                            <th>Expiration</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="offer : ${offers}" th:if="${offers != null}">
+                            <td class="td-mono text-muted" th:text="${offer.id}">1</td>
+                            <td th:text="${offer.title != null ? #strings.abbreviate(offer.title, 35) : '—'}">—</td>
+                            <td>
+                                <span class="pill pill-delivering" style="font-size:10px;"
+                                      th:text="${offer.category?.label ?: '—'}">—</span>
+                            </td>
+                            <td th:text="${offer.producer?.fullName ?: '—'}">—</td>
+                            <td class="td-mono"
+                                th:text="${offer.pricePerUnit != null ? #numbers.formatInteger(offer.pricePerUnit.longValue(), 1, 'POINT') + ' F' : '—'}">—</td>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <div style="flex:1; background:var(--card-bg-2); border-radius:99px; height:5px; overflow:hidden; min-width:50px;">
+                                        <div style="height:100%; background:linear-gradient(90deg,var(--green),var(--gold)); border-radius:99px;"
+                                             th:style="'width:' + offer.progressPercent + '%'"></div>
+                                    </div>
+                                    <span class="td-mono" style="font-size:10px;"
+                                          th:text="${offer.progressPercent} + '%'">0%</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span th:switch="${offer.status?.name()}">
+                                    <span th:case="'ACTIVE'"            class="pill pill-active">ACTIVE</span>
+                                    <span th:case="'PENDING_REVIEW'"    class="pill pill-pending">EN REVUE</span>
+                                    <span th:case="'DRAFT'"             class="pill pill-draft">BROUILLON</span>
+                                    <span th:case="'THRESHOLD_REACHED'" class="pill pill-threshold">SEUIL ✓</span>
+                                    <span th:case="'DELIVERING'"        class="pill pill-delivering">LIVRAISON</span>
+                                    <span th:case="'COMPLETED'"         class="pill pill-completed">COMPLÉTÉE</span>
+                                    <span th:case="'EXPIRED'"           class="pill pill-cancelled">EXPIRÉE</span>
+                                    <span th:case="'CANCELLED'"         class="pill pill-cancelled">ANNULÉE</span>
+                                    <span th:case="*"                   class="pill pill-draft" th:text="${offer.status}">—</span>
+                                </span>
+                            </td>
+                            <td class="text-muted" style="font-size:11px;"
+                                th:text="${offer.expiresAt != null ? #temporals.format(offer.expiresAt, 'dd/MM/yy') : '—'}">—</td>
+                            <td>
+                                <a th:href="@{/admin/offers/{id}(id=${offer.id})}"
+                                   class="btn btn-outline btn-xs">→</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${offers == null or offers.empty}">
+                            <td colspan="9">
+                                <div class="empty-state">
+                                    <div class="empty-icon">◉</div>
+                                    <div class="empty-text">Aucune offre enregistrée</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div style="padding:16px 24px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border);"
+                 th:if="${offers != null and offers.totalPages > 1}">
+                <span class="text-muted" style="font-size:12px;"
+                      th:text="'Page ' + (offers.number + 1) + ' sur ' + offers.totalPages">—</span>
+                <div class="flex gap-2">
+                    <a class="btn btn-outline btn-sm" th:if="${!offers.first}"
+                       th:href="@{/admin/offers(page=${offers.number - 1})}">← Préc.</a>
+                    <a class="btn btn-outline btn-sm" th:if="${!offers.last}"
+                       th:href="@{/admin/offers(page=${offers.number + 1})}">Suiv. →</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal-overlay" id="rejectModal">
+    <div class="modal-box">
+        <div class="modal-title">✕ Motif de rejet</div>
+        <form id="rejectForm" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <textarea name="reason" class="modal-textarea"
+                      placeholder="Expliquez au producteur pourquoi son offre est rejetée..." required></textarea>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeModal('rejectModal')">Annuler</button>
+                <button type="submit" class="btn btn-red">Confirmer le rejet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"/>
+<script>
+function openRejectModal(offerId) {
+    document.getElementById('rejectForm').action = '/admin/offers/' + offerId + '/reject';
+    openModal('rejectModal');
+}
+</script>
+</body>
+</html>

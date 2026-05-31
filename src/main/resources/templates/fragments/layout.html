@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!--/* SIDEBAR FRAGMENT */-->
+<nav th:fragment="sidebar(activePage)" class="sidebar">
+    <div class="sidebar-logo">
+        <span class="logo-text">AfriMarket</span>
+        <span class="logo-dot"></span>
+    </div>
+
+    <div class="sidebar-section-label">Navigation</div>
+
+    <ul class="nav-list">
+        <li th:class="${activePage == 'dashboard'} ? 'nav-item active' : 'nav-item'">
+            <a href="/admin/dashboard" class="nav-link">
+                <span class="nav-icon">⬡</span>
+                <span class="nav-label">Tableau de bord</span>
+            </a>
+        </li>
+        <li th:class="${activePage == 'users'} ? 'nav-item active' : 'nav-item'">
+            <a href="/admin/users" class="nav-link">
+                <span class="nav-icon">◈</span>
+                <span class="nav-label">Utilisateurs</span>
+            </a>
+        </li>
+        <li th:class="${activePage == 'offers'} ? 'nav-item active' : 'nav-item'">
+            <a href="/admin/offers" class="nav-link">
+                <span class="nav-icon">◉</span>
+                <span class="nav-label">Offres & Modération</span>
+            </a>
+        </li>
+        <li th:class="${activePage == 'transactions'} ? 'nav-item active' : 'nav-item'">
+            <a href="/admin/transactions" class="nav-link">
+                <span class="nav-icon">◎</span>
+                <span class="nav-label">Transactions</span>
+            </a>
+        </li>
+        <li th:class="${activePage == 'relays'} ? 'nav-item active' : 'nav-item'">
+            <a href="/admin/relays" class="nav-link">
+                <span class="nav-icon">◐</span>
+                <span class="nav-label">Points Relais</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-section-label" style="margin-top:auto">Système</div>
+    <ul class="nav-list">
+        <li th:class="${activePage == 'settings'} ? 'nav-item active' : 'nav-item'">
+            <a href="/admin/settings" class="nav-link">
+                <span class="nav-icon">◭</span>
+                <span class="nav-label">Paramètres</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <div class="admin-avatar">AD</div>
+        <div class="admin-info">
+            <div class="admin-name" sec:authentication="name">Admin</div>
+            <div class="admin-role-badge">Administrateur</div>
+        </div>
+        <a href="/admin/logout" class="logout-btn" title="Déconnexion">⏻</a>
+    </div>
+</nav>
+
+<!--/* TOPBAR FRAGMENT */-->
+<header th:fragment="topbar(title)" class="topbar">
+    <div class="topbar-title" th:text="${title}">Dashboard</div>
+    <div class="topbar-actions">
+        <div class="search-wrap">
+            <span class="search-icon">⌕</span>
+            <input type="text" class="search-input" placeholder="Rechercher...">
+        </div>
+        <div class="notif-btn">
+            <span>🔔</span>
+            <span class="notif-badge">3</span>
+        </div>
+        <div class="time-display" id="clock"></div>
+    </div>
+</header>
+
+<!--/* HEAD META FRAGMENT */-->
+<th:block th:fragment="head(pageTitle)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' — AfriMarket Admin'">AfriMarket Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital@1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</th:block>
+
+<!--/* SCRIPTS FRAGMENT */-->
+<th:block th:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script th:src="@{/js/admin.js}"></script>
+</th:block>
+
+</html>

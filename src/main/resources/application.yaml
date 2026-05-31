@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: AfriMarket_backend
+
+  datasource:
+    url: jdbc:sqlite:./afrimarket.db
+    driver-class-name: org.sqlite.JDBC
+    username: ""
+    password: ""
+
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        globally_quoted_identifiers: true
+
+  thymeleaf:
+    cache: false
+    encoding: UTF-8
+    mode: HTML
+
+  security:
+    user:
+      name: admin
+      password: "{noop}disabled"
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  error:
+    whitelabel:
+      enabled: false
+
+logging:
+  level:
+    com.example.AfriMarket_backend: DEBUG
+    org.springframework.security: INFO
