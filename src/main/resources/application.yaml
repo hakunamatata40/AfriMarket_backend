@@ -15,8 +15,7 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        format_sql: true
-        globally_quoted_identifiers: true
+        format_sql: false
 
   thymeleaf:
     cache: false
@@ -34,9 +33,13 @@ server:
     context-path: /
   error:
     whitelabel:
-      enabled: false
+      enabled: true
+    include-message: always
+    include-stacktrace: on_param
 
 logging:
   level:
     com.example.AfriMarket_backend: DEBUG
     org.springframework.security: INFO
+    org.springframework.web.servlet: WARN
+    org.hibernate.SQL: WARN

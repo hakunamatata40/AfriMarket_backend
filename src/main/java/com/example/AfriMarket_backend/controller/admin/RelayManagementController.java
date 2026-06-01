@@ -3,6 +3,8 @@ package com.example.AfriMarket_backend.controller.admin;
 import com.example.AfriMarket_backend.model.RelayPoint;
 import com.example.AfriMarket_backend.model.enums.RelayStatus;
 import com.example.AfriMarket_backend.service.RelayService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/admin/relays")
 public class RelayManagementController {
 
+    private static final Logger log = LoggerFactory.getLogger(RelayManagementController.class);
     private final RelayService relayService;
 
     public RelayManagementController(RelayService relayService) {
@@ -20,11 +23,22 @@ public class RelayManagementController {
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("relays", relayService.findAll());
-        model.addAttribute("zones", relayService.findAllZones());
-        model.addAttribute("newRelay", new RelayPoint());
-        model.addAttribute("page", "relays");
-        return "admin/relays/list";
+        try {
+            log.info(">>> Loading /admin/relays ...");
+            var relays = relayService.findAll();
+            log.info(">>> relays loaded: {}", relays.size());
+            var zones = relayService.findAllZones();
+            log.info(">>> zones loaded: {}", zones.size());
+            model.addAttribute("relays", relays);
+            model.addAttribute("zones", zones);
+            model.addAttribute("newRelay", new RelayPoint());
+            model.addAttribute("page", "relays");
+            log.info(">>> Rendering template admin/relays/list");
+            return "admin/relays/list";
+        } catch (Exception e) {
+            log.error("!!! ERREUR /admin/relays: {} — {}", e.getClass().getSimpleName(), e.getMessage(), e);
+            throw e; // re-throw so Spring shows the error
+        }
     }
 
     @GetMapping("/{id}/edit")

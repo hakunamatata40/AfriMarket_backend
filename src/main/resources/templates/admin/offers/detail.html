@@ -9,7 +9,7 @@
 <div th:replace="~{fragments/layout :: sidebar('offers')}"></div>
 
 <div class="main-area">
-    <header th:replace="~{fragments/layout :: topbar('Détail de l\'offre')}"></header>
+    <header th:replace="~{fragments/layout :: topbar('Détail de l offre')}"></header>
 
     <div class="page-content">
         <div class="page-header">
@@ -17,7 +17,7 @@
                 <a href="/admin/offers" class="btn btn-outline btn-sm" style="margin-bottom:12px;">← Retour modération</a>
                 <div class="page-title" th:text="${offer.title}">Offre</div>
                 <div class="page-subtitle"
-                     th:text="'ID ' + offer.id + ' • Soumise le ' + (offer.createdAt != null ? #temporals.format(offer.createdAt, 'dd/MM/yyyy HH:mm') : '—')">—</div>
+                     th:text="${'ID ' + offer.id + ' • Soumise le ' + (offer.createdAt != null ? #temporals.format(offer.createdAt, 'dd/MM/yyyy HH:mm') : '—')}">—</div>
             </div>
             <div style="display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap;">
                 <form th:action="@{/admin/offers/{id}/approve(id=${offer.id})}" method="post"
@@ -66,7 +66,7 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;">
                         <span class="text-muted">Quantité commandée</span>
                         <span class="td-mono text-gold"
-                              th:text="(offer.currentQtyOrdered != null ? offer.currentQtyOrdered.intValue() : 0) + ' / ' + (offer.minThreshold != null ? offer.minThreshold.intValue() : 0) + ' ' + offer.unit?.label">—</span>
+                              th:text="${(offer.currentQtyOrdered ?: 0) + ' / ' + (offer.minThreshold ?: 0) + ' ' + offer.unit?.label}">—</span>
                     </div>
                     <div class="progress-bar-wrap" style="height:12px;">
                         <div class="progress-bar-fill"
@@ -98,22 +98,22 @@
                             <div class="detail-field">
                                 <div class="detail-label">Prix unitaire</div>
                                 <div class="detail-value td-mono text-gold"
-                                     th:text="${offer.pricePerUnit != null ? #numbers.formatInteger(offer.pricePerUnit.longValue(), 1, 'POINT') + ' FCFA / ' + offer.unit?.label : '—'}">—</div>
+                                     th:text="${offer.pricePerUnit != null ? #numbers.formatInteger(offer.pricePerUnit, 1, 'POINT') + ' FCFA / ' + offer.unit?.label : '—'}">—</div>
                             </div>
                             <div class="detail-field">
                                 <div class="detail-label">Quantité disponible</div>
                                 <div class="detail-value td-mono"
-                                     th:text="${offer.availableQty != null ? offer.availableQty.intValue() + ' ' + offer.unit?.label : '—'}">—</div>
+                                     th:text="${offer.availableQty != null ? offer.availableQty + ' ' + offer.unit?.label : '—'}">—</div>
                             </div>
                             <div class="detail-field">
                                 <div class="detail-label">Seuil de déclenchement</div>
                                 <div class="detail-value td-mono"
-                                     th:text="${offer.minThreshold != null ? offer.minThreshold.intValue() + ' ' + offer.unit?.label : '—'}">—</div>
+                                     th:text="${offer.minThreshold != null ? offer.minThreshold + ' ' + offer.unit?.label : '—'}">—</div>
                             </div>
                             <div class="detail-field">
                                 <div class="detail-label">Min. par acheteur</div>
                                 <div class="detail-value td-mono"
-                                     th:text="${offer.minQtyPerBuyer != null ? offer.minQtyPerBuyer.intValue() + ' ' + offer.unit?.label : '—'}">—</div>
+                                     th:text="${offer.minQtyPerBuyer != null ? offer.minQtyPerBuyer + ' ' + offer.unit?.label : '—'}">—</div>
                             </div>
                             <div class="detail-field">
                                 <div class="detail-label">Date de disponibilité</div>
@@ -161,7 +161,7 @@
                     <div style="padding:20px;">
                         <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
                             <div class="admin-avatar" style="width:48px; height:48px; font-size:16px;"
-                                 th:text="${#strings.substring(offer.producer.fullName, 0, 2).toUpperCase()}">AD</div>
+                                 th:text="${#strings.toUpperCase(#strings.substring(offer.producer.fullName, 0, 2))}">AD</div>
                             <div>
                                 <div style="font-size:15px; font-weight:600; color:var(--text);"
                                      th:text="${offer.producer.fullName}">—</div>

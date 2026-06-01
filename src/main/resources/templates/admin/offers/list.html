@@ -36,7 +36,7 @@
                         <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
                             <span class="pill pill-pending">EN ATTENTE</span>
                             <span class="text-muted" style="font-size:11px; font-family:'Syne Mono',monospace;"
-                                  th:text="'ID ' + offer.id">—</span>
+                                  th:text="|ID ${offer.id}|">—</span>
                             <span class="text-muted" style="font-size:11px;"
                                   th:text="${offer.createdAt != null ? 'Soumis ' + #temporals.format(offer.createdAt, 'dd/MM/yyyy HH:mm') : ''}">—</span>
                         </div>
@@ -46,11 +46,11 @@
 
                         <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
                             <span class="td-mono text-gold"
-                                  th:text="${offer.pricePerUnit != null ? #numbers.formatInteger(offer.pricePerUnit.longValue(), 1, 'POINT') + ' FCFA/' + offer.unit?.label : '—'}">—</span>
+                                  th:text="${offer.pricePerUnit != null ? #numbers.formatInteger(offer.pricePerUnit, 1, 'POINT') + ' FCFA/' + offer.unit?.label : '—'}">—</span>
                             <span class="text-muted">·</span>
-                            <span th:text="'Dispo: ' + (offer.availableQty != null ? offer.availableQty.intValue() : 0) + ' ' + offer.unit?.label">—</span>
+                            <span th:text="${'Dispo: ' + (offer.availableQty != null ? offer.availableQty.intValue() : 0) + ' ' + offer.unit?.label}">—</span>
                             <span class="text-muted">·</span>
-                            <span th:text="'Seuil: ' + (offer.minThreshold != null ? offer.minThreshold.intValue() : 0) + ' ' + offer.unit?.label">—</span>
+                            <span th:text="${'Seuil: ' + (offer.minThreshold != null ? offer.minThreshold.intValue() : 0) + ' ' + offer.unit?.label}">—</span>
                             <span class="text-muted">·</span>
                             <span class="pill pill-delivering" style="font-size:10px;"
                                   th:text="${offer.category?.label}">—</span>
@@ -60,7 +60,7 @@
                              th:if="${offer.producer != null}">
                             Producteur : <strong th:text="${offer.producer.fullName}">—</strong>
                             <span th:if="${offer.producer.zone != null}"
-                                  th:text="' • ' + offer.producer.zone.name">—</span>
+                                  th:text="|• ${offer.producer.zone.name}|">—</span>
                         </div>
                     </div>
 
@@ -185,7 +185,7 @@
             <div style="padding:16px 24px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border);"
                  th:if="${offers != null and offers.totalPages > 1}">
                 <span class="text-muted" style="font-size:12px;"
-                      th:text="'Page ' + (offers.number + 1) + ' sur ' + offers.totalPages">—</span>
+                      th:text="${'Page ' + (offers.number + 1) + ' sur ' + offers.totalPages}">—</span>
                 <div class="flex gap-2">
                     <a class="btn btn-outline btn-sm" th:if="${!offers.first}"
                        th:href="@{/admin/offers(page=${offers.number - 1})}">← Préc.</a>

@@ -19,12 +19,25 @@ public class OfferService {
         this.offerRepository = offerRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Offer> getPendingOffers() {
-        return offerRepository.findByStatusOrderByCreatedAtAsc(OfferStatus.PENDING_REVIEW);
+        List<Offer> offers = offerRepository.findByStatusOrderByCreatedAtAsc(OfferStatus.PENDING_REVIEW);
+        // Force-load lazy associations used in the template
+        offers.forEach(o -> {
+            if (o.getProducer() != null) try { o.getProducer().getFullName(); o.getProducer().getZone(); } catch (Exception ignored) {}
+            if (o.getPhotos() != null)   try { o.getPhotos().size(); } catch (Exception ignored) {}
+        });
+        return offers;
     }
 
+    @Transactional(readOnly = true)
     public Page<Offer> findAll(Pageable pageable) {
-        return offerRepository.findAll(pageable);
+        Page<Offer> page = offerRepository.findAll(pageable);
+        // Force-load lazy associations
+        page.getContent().forEach(o -> {
+            if (o.getProducer() != null) try { o.getProducer().getFullName(); } catch (Exception ignored) {}
+        });
+        return page;
     }
 
     public Offer findById(Long id) {

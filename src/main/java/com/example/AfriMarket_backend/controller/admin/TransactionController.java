@@ -1,6 +1,8 @@
 package com.example.AfriMarket_backend.controller.admin;
 
 import com.example.AfriMarket_backend.service.TransactionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -12,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/admin/transactions")
 public class TransactionController {
 
+    private static final Logger log = LoggerFactory.getLogger(TransactionController.class);
     private final TransactionService transactionService;
 
     public TransactionController(TransactionService transactionService) {
@@ -20,12 +23,25 @@ public class TransactionController {
 
     @GetMapping
     public String list(@RequestParam(defaultValue = "0") int page, Model model) {
-        var pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
-        model.addAttribute("transactions", transactionService.findAll(pageable));
-        model.addAttribute("disputes", transactionService.getOpenDisputes());
-        model.addAttribute("totalCommissions", transactionService.getTotalCommissions());
-        model.addAttribute("page", "transactions");
-        return "admin/transactions/list";
+        try {
+            log.info(">>> Loading /admin/transactions page={}", page);
+            var pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
+            var txs = transactionService.findAll(pageable);
+            log.info(">>> transactions loaded: {}", txs.getNumberOfElements());
+            var disputes = transactionService.getOpenDisputes();
+            log.info(">>> disputes loaded: {}", disputes.size());
+            var commissions = transactionService.getTotalCommissions();
+            log.info(">>> commissions: {}", commissions);
+            model.addAttribute("transactions", txs);
+            model.addAttribute("disputes", disputes);
+            model.addAttribute("totalCommissions", commissions);
+            model.addAttribute("page", "transactions");
+            log.info(">>> Rendering admin/transactions/list");
+            return "admin/transactions/list";
+        } catch (Exception e) {
+            log.error("!!! ERREUR /admin/transactions: {} — {}", e.getClass().getSimpleName(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     @PostMapping("/disputes/{id}/resolve")

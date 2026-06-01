@@ -1,6 +1,8 @@
 package com.example.AfriMarket_backend.controller.admin;
 
 import com.example.AfriMarket_backend.service.OfferService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -12,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/admin/offers")
 public class OfferModerationController {
 
+    private static final Logger log = LoggerFactory.getLogger(OfferModerationController.class);
     private final OfferService offerService;
 
     public OfferModerationController(OfferService offerService) {
@@ -20,11 +23,22 @@ public class OfferModerationController {
 
     @GetMapping
     public String list(@RequestParam(defaultValue = "0") int page, Model model) {
-        var pageable = PageRequest.of(page, 15, Sort.by("createdAt").descending());
-        model.addAttribute("offers", offerService.findAll(pageable));
-        model.addAttribute("pendingOffers", offerService.getPendingOffers());
-        model.addAttribute("page", "offers");
-        return "admin/offers/list";
+        try {
+            log.info(">>> Loading /admin/offers page={}", page);
+            var pageable = PageRequest.of(page, 15, Sort.by("createdAt").descending());
+            var offers = offerService.findAll(pageable);
+            log.info(">>> offers page loaded: {} items", offers.getNumberOfElements());
+            var pending = offerService.getPendingOffers();
+            log.info(">>> pending offers: {}", pending.size());
+            model.addAttribute("offers", offers);
+            model.addAttribute("pendingOffers", pending);
+            model.addAttribute("page", "offers");
+            log.info(">>> Rendering admin/offers/list");
+            return "admin/offers/list";
+        } catch (Exception e) {
+            log.error("!!! ERREUR /admin/offers: {} — {}", e.getClass().getSimpleName(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/{id}")

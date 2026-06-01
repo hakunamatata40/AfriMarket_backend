@@ -41,7 +41,7 @@
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
                             <span class="pill pill-litige">⚠ LITIGE OUVERT</span>
                             <span class="td-mono text-muted" style="font-size:11px;"
-                                  th:text="'#' + d.id">—</span>
+                                  th:text="|#${d.id}|">—</span>
                             <span class="text-muted" style="font-size:11px;"
                                   th:text="${d.createdAt != null ? 'Ouvert le ' + #temporals.format(d.createdAt, 'dd/MM/yyyy HH:mm') : ''}">—</span>
                         </div>
@@ -51,16 +51,16 @@
                              th:text="${d.description}">—</div>
                         <div style="display:flex; gap:16px; font-size:12px; color:var(--text-dim);">
                             <span th:if="${d.openedBy != null}"
-                                  th:text="'Ouvert par : ' + d.openedBy.fullName">—</span>
+                                  th:text="|Ouvert par : ${d.openedBy.fullName}|">—</span>
                             <span th:if="${d.order != null and d.order.totalAmount != null}"
-                                  th:text="'Montant : ' + #numbers.formatInteger(d.order.totalAmount.longValue(), 1, 'POINT') + ' FCFA'">—</span>
+                                  th:text="${'Montant : ' + #numbers.formatInteger(d.order.totalAmount, 1, 'POINT') + ' FCFA'}">—</span>
                         </div>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:8px; min-width:200px;">
-                        <button class="btn btn-green" th:onclick="'openResolveModal(' + d.id + ', false)'">
+                        <button class="btn btn-green" th:onclick="|openResolveModal(${d.id}, false)|">
                             ✓ Libérer vers producteur
                         </button>
-                        <button class="btn btn-red" th:onclick="'openResolveModal(' + d.id + ', true)'">
+                        <button class="btn btn-red" th:onclick="|openResolveModal(${d.id}, true)|">
                             ↩ Rembourser l'acheteur
                         </button>
                     </div>
@@ -151,11 +151,11 @@
                             <td class="td-mono"
                                 th:text="${tx.order != null ? '#' + tx.order.id : '—'}">—</td>
                             <td class="td-mono td-right text-gold"
-                                th:text="${tx.amount != null ? #numbers.formatInteger(tx.amount.longValue(), 1, 'POINT') + ' F' : '—'}">—</td>
+                                th:text="${tx.amount != null ? #numbers.formatInteger(tx.amount, 1, 'POINT') + ' F' : '—'}">—</td>
                             <td class="td-mono td-right text-muted"
-                                th:text="${tx.commission != null ? #numbers.formatInteger(tx.commission.longValue(), 1, 'POINT') + ' F' : '—'}">—</td>
+                                th:text="${tx.commission != null ? #numbers.formatInteger(tx.commission, 1, 'POINT') + ' F' : '—'}">—</td>
                             <td class="td-mono td-right text-green"
-                                th:text="${tx.netAmount != null ? #numbers.formatInteger(tx.netAmount.longValue(), 1, 'POINT') + ' F' : '—'}">—</td>
+                                th:text="${tx.netAmount != null ? #numbers.formatInteger(tx.netAmount, 1, 'POINT') + ' F' : '—'}">—</td>
                             <td class="td-mono text-muted" style="font-size:11px;"
                                 th:text="${tx.momoRef != null ? #strings.abbreviate(tx.momoRef, 16) : '—'}">—</td>
                             <td class="text-muted" style="font-size:11px;"
@@ -177,7 +177,7 @@
             <div style="padding:16px 24px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border);"
                  th:if="${transactions != null and transactions.totalPages > 1}">
                 <span class="text-muted" style="font-size:12px;"
-                      th:text="'Page ' + (transactions.number + 1) + ' sur ' + transactions.totalPages">—</span>
+                      th:text="${'Page ' + (transactions.number + 1) + ' sur ' + transactions.totalPages}">—</span>
                 <div class="flex gap-2">
                     <a class="btn btn-outline btn-sm" th:if="${!transactions.first}"
                        th:href="@{/admin/transactions(page=${transactions.number - 1})}">← Préc.</a>

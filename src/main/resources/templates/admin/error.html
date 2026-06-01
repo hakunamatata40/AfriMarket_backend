@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erreur — AfriMarket Admin</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #F7F2EA; margin: 0; padding: 40px 20px; }
+        .box { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 16px;
+               border: 1px solid #e5e0d8; padding: 40px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+        h2 { color: #1C1208; margin-top: 0; }
+        .badge { display: inline-block; background: #FEF3C7; color: #B45309; padding: 4px 12px;
+                 border-radius: 100px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
+        .msg { background: #FFF7ED; border-left: 3px solid #E8641A; border-radius: 8px;
+               padding: 16px; font-size: 13px; color: #7C2D12; word-break: break-all;
+               white-space: pre-wrap; margin-bottom: 24px; }
+        .meta { font-size: 12px; color: #9CA3AF; margin-bottom: 8px; }
+        a { display: inline-block; background: #E8641A; color: #fff; padding: 10px 24px;
+            border-radius: 100px; text-decoration: none; font-weight: 600; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <span class="badge">⚠ Erreur 500</span>
+        <h2>Une erreur est survenue sur cette page</h2>
+        <div class="meta">Page : <code th:text="${path}">—</code></div>
+        <div class="meta">Type : <code th:text="${errorType}">—</code></div>
+        <div class="msg" th:text="${errorMessage}">—</div>
+        <a href="/admin/dashboard">← Retour au tableau de bord</a>
+    </div>
+</body>
+</html>

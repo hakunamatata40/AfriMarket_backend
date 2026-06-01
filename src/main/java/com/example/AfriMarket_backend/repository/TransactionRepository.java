@@ -13,7 +13,8 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Page<Transaction> findAll(Pageable pageable);
 
-    @Query("SELECT COALESCE(SUM(t.commission), 0) FROM Transaction t WHERE t.type = 'RELEASE'")
+    @Query(value = "SELECT COALESCE(SUM(commission), 0) FROM transactions WHERE type = 'RELEASE'",
+           nativeQuery = true)
     BigDecimal sumTotalCommissions();
 
     @Query(value = "SELECT COALESCE(SUM(t.net_amount), 0) FROM transactions t " +

@@ -20,15 +20,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByStatus(UserStatus status);
     long countByRoleAndStatus(UserRole role, UserStatus status);
 
-    @Query(value = "SELECT * FROM users u WHERE " +
-           "(:role IS NULL OR u.role = :role) AND " +
-           "(:status IS NULL OR u.status = :status) AND " +
-           "(:search IS NULL OR LOWER(u.full_name) LIKE LOWER('%' || :search || '%') OR u.phone LIKE '%' || :search || '%') " +
-           "ORDER BY u.created_at DESC",
-           countQuery = "SELECT COUNT(*) FROM users u WHERE " +
-           "(:role IS NULL OR u.role = :role) AND " +
-           "(:status IS NULL OR u.status = :status) AND " +
-           "(:search IS NULL OR LOWER(u.full_name) LIKE LOWER('%' || :search || '%') OR u.phone LIKE '%' || :search || '%')",
+    @Query(value = "SELECT * FROM users WHERE " +
+           "(:role IS NULL OR role = :role) AND " +
+           "(:status IS NULL OR status = :status) AND " +
+           "(:search IS NULL OR (LOWER(full_name) LIKE LOWER('%' || :search || '%') OR phone LIKE '%' || :search || '%')) " +
+           "ORDER BY created_at DESC",
+           countQuery = "SELECT COUNT(*) FROM users WHERE " +
+           "(:role IS NULL OR role = :role) AND " +
+           "(:status IS NULL OR status = :status) AND " +
+           "(:search IS NULL OR (LOWER(full_name) LIKE LOWER('%' || :search || '%') OR phone LIKE '%' || :search || '%'))",
            nativeQuery = true)
     Page<User> findByFilters(@Param("role") String role,
                              @Param("status") String status,

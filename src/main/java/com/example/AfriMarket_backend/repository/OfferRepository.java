@@ -21,11 +21,12 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<Offer> findByProducerIdOrderByCreatedAtDesc(Long producerId);
     long countByProducerIdAndStatus(Long producerId, OfferStatus status);
 
-    // Consumer public browsing — ACTIVE + optional filters
-    @Query("SELECT o FROM Offer o WHERE o.status IN ('ACTIVE', 'THRESHOLD_REACHED') " +
-           "AND (:category IS NULL OR CAST(o.category AS string) = :category) " +
-           "AND (:search IS NULL OR LOWER(o.title) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "ORDER BY o.createdAt DESC")
+    // Consumer public browsing — ACTIVE + optional filters (native SQLite query)
+    @Query(value = "SELECT * FROM offers WHERE status IN ('ACTIVE', 'THRESHOLD_REACHED') " +
+                   "AND (:category IS NULL OR category = :category) " +
+                   "AND (:search IS NULL OR LOWER(title) LIKE LOWER('%' || :search || '%')) " +
+                   "ORDER BY created_at DESC",
+           nativeQuery = true)
     List<Offer> findActiveOffers(@Param("category") String category,
                                  @Param("search") String search);
 }
