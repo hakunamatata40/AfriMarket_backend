@@ -9,6 +9,7 @@ import com.example.AfriMarket_backend.model.enums.MomoProvider;
 import com.example.AfriMarket_backend.model.enums.OfferStatus;
 import com.example.AfriMarket_backend.model.enums.OrderStatus;
 import com.example.AfriMarket_backend.repository.*;
+import com.example.AfriMarket_backend.repository.OfferCustomRelayRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,13 +35,16 @@ public class ApiConsumerController {
     private final OfferRepository offerRepository;
     private final OrderRepository orderRepository;
     private final RelayPointRepository relayRepository;
+    private final OfferCustomRelayRepository customRelayRepo;
 
     public ApiConsumerController(OfferRepository offerRepository,
                                   OrderRepository orderRepository,
-                                  RelayPointRepository relayRepository) {
+                                  RelayPointRepository relayRepository,
+                                  OfferCustomRelayRepository customRelayRepo) {
         this.offerRepository = offerRepository;
         this.orderRepository = orderRepository;
         this.relayRepository = relayRepository;
+        this.customRelayRepo = customRelayRepo;
     }
 
     // ─── Browse active offers ────────────────────────────────────────────────
@@ -88,19 +92,39 @@ public class ApiConsumerController {
         dto.setParticipantsCount(count);
 
         // Get active relays
-        var relays = relayRepository.findAll().stream()
+        List<java.util.Map<String, Object>> relays = relayRepository.findAll().stream()
                 .filter(r -> r.getStatus() != null &&
                         r.getStatus().name().equals("ACTIVE"))
-                .map(r -> Map.of(
-                        "id", String.valueOf(r.getId()),
-                        "name", r.getName() != null ? r.getName() : "",
-                        "address", r.getAddress() != null ? r.getAddress() : "",
-                        "zoneName", r.getZone() != null ? r.getZone().getName() : "",
-                        "distance", "0"
-                ))
+                .map(r -> {
+                    java.util.Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("id", String.valueOf(r.getId()));
+                    m.put("name", r.getName() != null ? r.getName() : "");
+                    m.put("address", r.getAddress() != null ? r.getAddress() : "");
+                    m.put("zoneName", r.getZone() != null ? r.getZone().getName() : "");
+                    m.put("distance", "0");
+                    return m;
+                })
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(Map.of("offer", dto, "relays", relays));
+        List<java.util.Map<String, Object>> customRelays = customRelayRepo.findByOfferId(id).stream()
+                .map(r -> {
+                    java.util.Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("id", "custom_" + r.getId());
+                    m.put("name", r.getName());
+                    m.put("address", r.getAddress() != null ? r.getAddress() : "");
+                    m.put("zoneName", "Point producteur");
+                    m.put("lat", r.getLat() != null ? r.getLat() : 0.0);
+                    m.put("lng", r.getLng() != null ? r.getLng() : 0.0);
+                    m.put("distance", "0");
+                    m.put("isCustom", true);
+                    return m;
+                })
+                .collect(Collectors.toList());
+
+        var allRelays = new java.util.ArrayList<>(relays);
+        allRelays.addAll(customRelays);
+
+        return ResponseEntity.ok(Map.of("offer", dto, "relays", allRelays));
     }
 
     // ─── Join an offer ───────────────────────────────────────────────────────

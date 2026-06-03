@@ -79,7 +79,12 @@ public class SecurityConfig {
                 .requestMatchers("/admin/login", "/css/**", "/js/**", "/images/**",
                                  "/uploads/**", "/favicon.ico").permitAll()
                 // Public API endpoints
-                .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/register").permitAll()
+                .requestMatchers(HttpMethod.POST,
+                        "/api/v1/auth/login",
+                        "/api/v1/auth/register",
+                        "/api/v1/auth/forgot-password",
+                        "/api/v1/auth/verify-otp",
+                        "/api/v1/auth/reset-password").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/zones", "/api/v1/relays").permitAll()
                 // Protected API endpoints — authenticated via JWT (no session redirect)

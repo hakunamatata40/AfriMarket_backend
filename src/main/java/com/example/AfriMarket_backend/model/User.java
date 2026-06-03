@@ -69,4 +69,9 @@ public class User {
     // Consumer preferred delivery district (e.g. "Yaoundé 4")
     @Column(name = "arrondissement")
     private String arrondissement;
+
+    // Optional email — used for password reset OTP
+    // Note: unique constraint omitted — SQLite cannot add UNIQUE via ALTER TABLE
+    @Column(name = "email")
+    private String email;
 }

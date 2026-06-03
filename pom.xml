@@ -86,6 +86,12 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Email (JavaMailSender — Gmail SMTP) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
 		<!-- Lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>

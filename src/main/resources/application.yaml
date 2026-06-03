@@ -27,6 +27,20 @@ spring:
       name: admin
       password: "{noop}disabled"
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: yanavadieudonne@gmail.com
+    password: lubfuhzwjsaovkxm
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+        debug: false
+
 server:
   port: 8080
   servlet:
@@ -36,6 +50,11 @@ server:
       enabled: true
     include-message: always
     include-stacktrace: on_param
+
+afrimarket:
+  mail:
+    from: yanavadieudonne@gmail.com
+    from-name: AfriMarket
 
 logging:
   level:

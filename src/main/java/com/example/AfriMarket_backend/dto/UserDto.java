@@ -19,6 +19,7 @@ public class UserDto {
     private Integer ratingCount;
     private LocalDateTime createdAt;
     private String arrondissement;
+    private String email;
 
     public static UserDto from(User u) {
         UserDto d = new UserDto();
@@ -36,6 +37,7 @@ public class UserDto {
         d.ratingCount = u.getRatingCount();
         d.createdAt = u.getCreatedAt();
         d.arrondissement = u.getArrondissement();
+        d.email = u.getEmail();
         return d;
     }
 
@@ -54,4 +56,5 @@ public class UserDto {
     public Integer getRatingCount() { return ratingCount; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public String getArrondissement() { return arrondissement; }
+    public String getEmail() { return email; }
 }

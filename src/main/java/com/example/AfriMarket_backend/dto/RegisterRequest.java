@@ -28,4 +28,8 @@ public class RegisterRequest {
     public void setRole(String role) { this.role = role; }
     public String getArrondissement() { return arrondissement; }
     public void setArrondissement(String arrondissement) { this.arrondissement = arrondissement; }
+
+    private String email; // Optional — used for password reset OTP
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 }
